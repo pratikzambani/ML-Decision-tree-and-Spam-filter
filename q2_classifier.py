@@ -52,15 +52,14 @@ class Baiyes_classifier:
             words = listOfWords[2:]
             prob_spam = 0.0
             prob_ham = 0.0
+
             for word in set(words):
                 if word in self.spamWords:
                     occurences_in_spam = self.spamWords[word]
-                else:
-                    occurences_in_spam = self.spamCount+2.0
+
                 if word in self.hamWords:
                     occurences_in_ham = self.hamWords[word]
-                else:
-                    occurences_in_ham = self.hamCount + 2.0
+
                 sp= log((occurences_in_spam+1.0)/(self.total_spam_words+v))
                 hp= log((occurences_in_ham+1.0)/(self.total_ham_words+v))
                 prob_spam = prob_spam + (sp)
@@ -86,6 +85,7 @@ class Baiyes_classifier:
                 correct = correct + 1
         return (correct / total)* 100
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-f1', help='training file in csv format', required=True)
@@ -100,4 +100,4 @@ if __name__ == '__main__':
     classifier.train_classifier(training_data)
 
     accuracy = classifier.classify(test_data, output_file)
-    print(accuracy)
+    print('Accuracy:',accuracy)
