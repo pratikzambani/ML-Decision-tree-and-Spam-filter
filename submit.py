@@ -19,7 +19,7 @@ TreeNode can be:
         - children[0]-children[4]: Doesn't matter, you can leave them the same or cast to None.
 
 '''
-
+tree_size = 0
 # DO NOT CHANGE THIS CLASS
 class TreeNode():
     def __init__(self, data='T',children=[-1]*5):
@@ -81,14 +81,16 @@ Xtrain, Ytrain, Xtest = load_data(Xtrain_name, Xtest_name)
 
 def create_decision_tree(Xtrain, Ytrain, used_feats):
 
+    global tree_size
     new_node = TreeNode(-1)
+    tree_size += 1
 
     vis, nvis = 0.0,0.0
     for y in Ytrain:
         if not y:
-            nvis += 1
+            nvis += 1.0
             continue
-        vis += 1
+        vis += 1.0
 
   # leaf node
     if not vis or not nvis or all(used_feats):
@@ -120,16 +122,16 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
             f_entropy = 0.0
             feat_entropy, ifgain = 0.0, 0.0
             for feat_val in feat_val_count:
-                w = feat_val_count[feat_val]/len(Xtrain)
+                w = (feat_val_count[feat_val]*1.0)/(len(Xtrain)*1.0)
                 sublabel = []
                 fvis,fnvis = 0.0,0.0
                 for i in range(len(Xtrain)):
                     if Xtrain[i][feat] == feat_val:
                         sublabel.append(Ytrain[i])
                         if Ytrain[i]:
-                            fvis += 1
+                            fvis += 1.0
                         else:
-                            fnvis += 1
+                            fnvis += 1.0
 
                 fvisentropy, fnvisentropy = 0.0, 0.0
                 if fvis:
@@ -164,23 +166,24 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
             child_used_feats[new_node.data] = True
             child_recurse_lists[uval] = [child_xtrain, child_ytrain, child_used_feats]
 
-            pidash = (vis*len(child_xtrain))/(len(Xtrain)*1.0)
-            nidash = (nvis*len(child_xtrain))/(len(Xtrain)*1.0)
+            pidash = (vis*len(child_xtrain)*1.0)/(len(Xtrain)*1.0)
+            nidash = (nvis*len(child_xtrain)*1.0)/(len(Xtrain)*1.0)
             child_vis, child_nvis = 0.0, 0.0
             for y in child_ytrain:
                 if y:
-                    child_vis += 1
+                    child_vis += 1.0
                 else:
-                    child_nvis += 1
+                    child_nvis += 1.0
             if child_vis:
-                summation += ((child_vis - pidash)*(child_vis - pidash))/child_vis
+                summation += ((child_vis - pidash)*(child_vis - pidash)*1.0)/(child_vis*1.0)
             if child_nvis:
-                summation += ((child_nvis - nidash)*(child_nvis - nidash))/child_nvis
+                summation += ((child_nvis - nidash)*(child_nvis - nidash)*1.0)/(child_nvis*1.0)
 
-        p_val = 1 - stats.chi2.cdf(summation, len(uniq_vals))
+        p_val = 1.0 - stats.chi2.cdf(summation, len(uniq_vals))
 
         if p_val > pval:
             new_node.data = 'T' if vis else 'F'
+            return new_node
         else:
             for uval, child_data in child_recurse_lists.iteritems():
                 #print 'recursing..'
@@ -203,20 +206,19 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
             new_node.nodes[i] = TreeNode(ch)
 
     return new_node
-
 def get_label(root, test_data):
 
-    if root.data != 'T' and root.data != 'F':
-        get_label(root.nodes[test_data[int(root.data)-1]-1], test_data)
-    elif root.data == 'T':
+    if root.data == 'T':
         return 1
-    return 0
+    elif root.data == 'F':
+        return 0
+    return get_label(root.nodes[test_data[int(root.data)-1]-1], test_data)
 
 print("Training...")
 used_feats = [False]*num_feats
 
 s = create_decision_tree(Xtrain, Ytrain, used_feats)
-
+print 'size of tree', tree_size
 s.save_tree(tree_name)
 print("Testing...")
 Ypredict = []
