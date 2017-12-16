@@ -4,6 +4,7 @@ import argparse
 import csv
 import numpy as np
 import copy
+from scipy import stats
 from math import log
 
 '''
@@ -91,9 +92,8 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
 
   # leaf node
     if not vis or not nvis or all(used_feats):
-        print 'me leaf bro'
-        new_node.data = 'T' if vis else 0
-        # track as leaf!
+        #print 'me leaf bro'
+        new_node.data = 'T' if vis else 'F'
         return new_node
     else:
         #print vis, nvis, len(Ytrain)
@@ -141,30 +141,65 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
 
         print 'yo got new_node.data as', new_node.data
         if new_node.data == -1:
-            print 'coudnt find feat with max info gain'
-            return
+            new_node.data = 'T' if vis else 'F'
+            return new_node
 
         chi = True
+        summation = 0.0
         uniq_vals = set()
-        if chi:
-            for x in Xtrain:
-                uniq_vals.add(x[new_node.data])
-            print 'uniq vals', uniq_vals
-            for uval in uniq_vals:
-                child_xtrain, child_ytrain = [], []
-                for i in range(len(Xtrain)):
-                    if Xtrain[i][new_node.data] == uval:
-                        child_xtrain.append(Xtrain[i])
-                        child_ytrain.append(Ytrain[i])
-                child_used_feats = copy.copy(used_feats)
-                child_used_feats[new_node.data] = True
-                print 'recursing with uval ', uval
-                child = create_decision_tree(child_xtrain, child_ytrain, child_used_feats)
-                new_node.nodes[uval-1] = child
+        child_recurse_lists = dict()
+        for x in Xtrain:
+            uniq_vals.add(x[new_node.data])
+        print 'uniq vals', uniq_vals
+        for uval in uniq_vals:
+            child_xtrain, child_ytrain = [], []
+            for i in range(len(Xtrain)):
+                if Xtrain[i][new_node.data] == uval:
+                    child_xtrain.append(Xtrain[i])
+                    child_ytrain.append(Ytrain[i])
+            child_used_feats = copy.copy(used_feats)
+            child_used_feats[new_node.data] = True
+            child_recurse_lists[uval] = [child_xtrain, child_ytrain, child_used_feats]
+
+            pidash = (vis*len(child_xtrain))/(len(Xtrain)*1.0)
+            nidash = (nvis*len(child_xtrain))/(len(Xtrain)*1.0)
+            child_vis, child_nvis = 0.0, 0.0
+            for y in child_ytrain:
+                if y:
+                    child_vis += 1
+                else:
+                    child_nvis += 1
+            if child_vis:
+                summation += ((child_vis - pidash)*(child_vis - pidash))/child_vis
+            if child_nvis:
+                summation += ((child_nvis - nidash)*(child_nvis - nidash))/child_nvis
+
+        p_val = 1 - stats.chi2.cdf(summation, len(uniq_vals))
+
+        if p_val > pval:
+            new_node.data = 'T' if vis else 'F'
         else:
-            new_node.data = 'T' if vis else 0
+            for uval, child_data in child_recurse_lists.iteritems():
+                print 'recursing..'
+                child = create_decision_tree(child_data[0], child_data[1], child_data[2])
+                new_node.nodes[uval-1] = child
 
     return new_node
+
+def get_label(test):
+
+    node = s
+    f_ind = node.data
+    while node.data != 'T' and node.data != 'F':
+        f_val = test[f_ind]
+        print 'yo', node.data
+        if test[node.data]-1 in node.nodes and node.nodes[test[node.data]-1] != -1:
+            node = node.nodes[test[node.data]-1]
+        else:
+            return 0
+    if node.data == 'T':
+        return 1
+    return 0
 
 print("Training...")
 used_feats = [False]*num_feats
@@ -176,7 +211,8 @@ print("Testing...")
 Ypredict = []
 #generate random labels
 for i in range(0,len(Xtest)):
-	Ypredict.append([np.random.randint(0,2)])
+    Ypredict.append([np.random.randint(0,2)])
+	#Ypredict.append([get_label(Xtest[i])])
 
 with open(Ytest_predict_name, "wb") as f:
     writer = csv.writer(f)
