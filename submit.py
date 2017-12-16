@@ -145,7 +145,7 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
 
         print 'yo assigned new_node.data as', new_node.data
         if new_node.data == -1:
-            new_node.data = 'T' if vis else 'F'
+            new_node.data = 'T' if vis > nvis else 'F'
             return new_node
 
         chi = True
@@ -184,23 +184,48 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
             new_node.data = 'T' if vis else 'F'
         else:
             for uval, child_data in child_recurse_lists.iteritems():
-                print 'recursing..'
+                #print 'recursing..'
                 child = create_decision_tree(child_data[0], child_data[1], child_data[2])
                 new_node.nodes[uval-1] = child
 
+    gr = False
+    for i in range(0, 5):
+        if new_node.nodes[i] != -1:
+            gr = True
+            break
+
+    if not gr:
+        new_node.data = 'T' if vis > nvis else 'F'
+        return new_node
+
+    for i in range(0, 5):
+        if new_node.nodes[i] == -1:
+            ch = 'T' if vis > nvis else 'F'
+            new_node.nodes[i] = TreeNode(ch)
+
     return new_node
 
-def get_label(test):
+def get_label(root, datapoint):
 
+    if root.data == 'T': return 1
+    if root.data =='F': return 0
+    return get_label(root.nodes[datapoint[int(root.data)-1]-1], datapoint)
     node = s
     f_ind = node.data
     while node.data != 'T' and node.data != 'F':
         f_val = test[f_ind]
-        print 'yo', node.data
-        if test[node.data]-1 in node.nodes and node.nodes[test[node.data]-1] != -1:
-            node = node.nodes[test[node.data]-1]
+        nodes_vals = [n.data for n in node.nodes]
+        print 'checking for ', test[node.data], 'in', nodes_vals
+        if test[node.data] in nodes_vals:
+            if node.nodes[test[node.data]-1] != -1:
+                node = node.nodes[test[node.data]-1]
+            else:
+                print 'does not exist returning 1'
+                print node.nodes
+                return 1
         else:
             return 0
+
     if node.data == 'T':
         return 1
     return 0
@@ -215,8 +240,8 @@ print("Testing...")
 Ypredict = []
 #generate random labels
 for i in range(0,len(Xtest)):
-    Ypredict.append([np.random.randint(0,2)])
-	#Ypredict.append([get_label(Xtest[i])])
+    #Ypredict.append([np.random.randint(0,2)])
+	Ypredict.append([get_label(s, Xtest[i])])
 
 with open(Ytest_predict_name, "wb") as f:
     writer = csv.writer(f)
