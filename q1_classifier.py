@@ -81,9 +81,7 @@ Xtrain, Ytrain, Xtest = load_data(Xtrain_name, Xtest_name)
 
 def create_decision_tree(Xtrain, Ytrain, used_feats):
 
-    global tree_size
     new_node = TreeNode(-1)
-    tree_size += 1
 
     vis, nvis = 0.0,0.0
     for y in Ytrain:
@@ -218,7 +216,6 @@ print("Training...")
 used_feats = [False]*num_feats
 
 s = create_decision_tree(Xtrain, Ytrain, used_feats)
-print 'size of tree', tree_size
 s.save_tree(tree_name)
 print("Testing...")
 Ypredict = []
