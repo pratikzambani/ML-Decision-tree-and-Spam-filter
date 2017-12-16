@@ -81,7 +81,7 @@ Xtrain, Ytrain, Xtest = load_data(Xtrain_name, Xtest_name)
 
 def create_decision_tree(Xtrain, Ytrain, used_feats):
 
-    new_node = TreeNode()
+    new_node = TreeNode(-1)
 
     vis, nvis = 0.0,0.0
     for y in Ytrain:
@@ -106,10 +106,10 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
             nvisentropy = -(nvis/lenytrain)*log(nvis/lenytrain, 2)
         entropy = visentropy + nvisentropy
 
-        feat_entropy, ifgain = 0, 0
-        new_node.data = -1
+        #new_node.data = -1
         for feat in range(num_feats):
             if used_feats[feat]:
+                print 'feat', feat, ' already used'
                 continue
 
             feat_val_count = dict()
@@ -117,16 +117,20 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
                 feat_val_count.setdefault(x[feat], 0)
                 feat_val_count[x[feat]] += 1
 
+            f_entropy = 0.0
+            feat_entropy, ifgain = 0.0, 0.0
             for feat_val in feat_val_count:
                 w = feat_val_count[feat_val]/len(Xtrain)
+                sublabel = []
                 fvis,fnvis = 0.0,0.0
                 for i in range(len(Xtrain)):
                     if Xtrain[i][feat] == feat_val:
+                        sublabel.append(Ytrain[i])
                         if Ytrain[i]:
                             fvis += 1
                         else:
                             fnvis += 1
-                #print fvis, fnvis
+
                 fvisentropy, fnvisentropy = 0.0, 0.0
                 if fvis:
                     fvisentropy = -(fvis/(fvis+fnvis))*log(fvis/(fvis+fnvis), 2)
@@ -136,10 +140,10 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
                 feat_entropy += w*(fvisentropy + fnvisentropy)
 
             if entropy - feat_entropy > ifgain:
-                ifgain = entropy - feat_entropy
+                #ifgain = entropy - feat_entropy
                 new_node.data = feat
 
-        print 'yo got new_node.data as', new_node.data
+        print 'yo assigned new_node.data as', new_node.data
         if new_node.data == -1:
             new_node.data = 'T' if vis else 'F'
             return new_node
