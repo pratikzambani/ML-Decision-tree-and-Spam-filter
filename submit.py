@@ -109,7 +109,7 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
         #new_node.data = -1
         for feat in range(num_feats):
             if used_feats[feat]:
-                print 'feat', feat, ' already used'
+                #print 'feat', feat, ' already used'
                 continue
 
             feat_val_count = dict()
@@ -143,18 +143,17 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
                 ifgain = entropy - feat_entropy
                 new_node.data = feat
 
-        print 'yo assigned new_node.data as', new_node.data
+        #print 'yo assigned new_node.data as', new_node.data
         if new_node.data == -1:
             new_node.data = 'T' if vis > nvis else 'F'
             return new_node
 
-        chi = True
         summation = 0.0
         uniq_vals = set()
         child_recurse_lists = dict()
         for x in Xtrain:
             uniq_vals.add(x[new_node.data])
-        print 'uniq vals', uniq_vals
+        #print 'uniq vals', uniq_vals
         for uval in uniq_vals:
             child_xtrain, child_ytrain = [], []
             for i in range(len(Xtrain)):
@@ -205,28 +204,11 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
 
     return new_node
 
-def get_label(root, datapoint):
+def get_label(root, test_data):
 
-    if root.data == 'T': return 1
-    if root.data =='F': return 0
-    return get_label(root.nodes[datapoint[int(root.data)-1]-1], datapoint)
-    node = s
-    f_ind = node.data
-    while node.data != 'T' and node.data != 'F':
-        f_val = test[f_ind]
-        nodes_vals = [n.data for n in node.nodes]
-        print 'checking for ', test[node.data], 'in', nodes_vals
-        if test[node.data] in nodes_vals:
-            if node.nodes[test[node.data]-1] != -1:
-                node = node.nodes[test[node.data]-1]
-            else:
-                print 'does not exist returning 1'
-                print node.nodes
-                return 1
-        else:
-            return 0
-
-    if node.data == 'T':
+    if root.data != 'T' and root.data != 'F':
+        get_label(root.nodes[test_data[int(root.data)-1]-1], test_data)
+    elif root.data == 'T':
         return 1
     return 0
 
