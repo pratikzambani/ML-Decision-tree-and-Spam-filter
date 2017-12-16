@@ -95,6 +95,7 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
         #print 'me leaf bro'
         new_node.data = 'T' if vis else 'F'
         return new_node
+    # internal node
     else:
         #print vis, nvis, len(Ytrain)
         lenytrain = len(Ytrain)*1.0
@@ -106,7 +107,7 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
             nvisentropy = -(nvis/lenytrain)*log(nvis/lenytrain, 2)
         entropy = visentropy + nvisentropy
 
-        #new_node.data = -1
+        # checking for feature to split on
         for feat in range(num_feats):
             if used_feats[feat]:
                 #print 'feat', feat, ' already used'
@@ -117,6 +118,7 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
                 feat_val_count.setdefault(x[feat], 0)
                 feat_val_count[x[feat]] += 1
 
+            # entropy calculation
             f_entropy = 0.0
             feat_entropy, ifgain = 0.0, 0.0
             for feat_val in feat_val_count:
@@ -138,7 +140,7 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
                     fnvisentropy = -(fnvis/(fvis+fnvis))*log(fnvis/(fvis+fnvis), 2)
 
                 feat_entropy += w*(fvisentropy + fnvisentropy)
-
+            # check for max information gain
             if entropy - feat_entropy > ifgain:
                 ifgain = entropy - feat_entropy
                 new_node.data = feat
@@ -154,6 +156,7 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
         for x in Xtrain:
             uniq_vals.add(x[new_node.data])
         #print 'uniq vals', uniq_vals
+        # chi squared criteria
         for uval in uniq_vals:
             child_xtrain, child_ytrain = [], []
             for i in range(len(Xtrain)):
