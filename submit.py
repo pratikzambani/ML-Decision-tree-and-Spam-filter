@@ -140,7 +140,7 @@ def create_decision_tree(Xtrain, Ytrain, used_feats):
                 feat_entropy += w*(fvisentropy + fnvisentropy)
 
             if entropy - feat_entropy > ifgain:
-                #ifgain = entropy - feat_entropy
+                ifgain = entropy - feat_entropy
                 new_node.data = feat
 
         print 'yo assigned new_node.data as', new_node.data
